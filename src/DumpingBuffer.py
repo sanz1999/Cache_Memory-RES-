@@ -13,7 +13,7 @@ def PrimiPodatke(data):
 
 def main():
     #server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    #server.bind(('localhost',9999))
+    #server.bind(('localhost',42500))
     #server.listen()
 
     
