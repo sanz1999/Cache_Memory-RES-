@@ -6,7 +6,7 @@ import asyncio
 
 DATA_SIZE = 2048
 BUFFER_SIZE = 7
-LOCALHOST = socket.gethostbyname(socket.gethostname)
+LOCALHOST = socket.gethostbyname(socket.gethostname())
 DUMPINGBUFFER_PORT = 42500
 HISTORICAL_PORT = 42502
 #ovde ce ici implementacija queua
@@ -56,7 +56,7 @@ def PrimiPodatke(data):
 async def main():
     asyncio.create_task(SaljiPodatke())
     while True:
-        dumpingbufferSocket =  socket.socket((socket.AF_INET,socket.SOCK_STREAM))
+        dumpingbufferSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         dumpingbufferSocket.bind((LOCALHOST,DUMPINGBUFFER_PORT))
         dumpingbufferSocket.listen()
         writer,address = dumpingbufferSocket.accept()
