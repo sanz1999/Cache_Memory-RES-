@@ -1,3 +1,4 @@
+from logging import exception
 import sqlite3
 import socket, pickle, selectors, types, sys, os
 
@@ -7,6 +8,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from models.ETipZahteva import ETipZahteva
 from models.ConnectionParams import HOST, DB_PORT, R_PORT
+from models.IzvestajPoKorisniku import IzvestajKorisnik
 
 #Instanca selektora za asinhroni rad soketa
 sel = selectors.DefaultSelector()
@@ -19,7 +21,7 @@ cur = conn.cursor()
 cur.executescript('''
 CREATE TABLE IF NOT EXISTS "Korisnici" (
     "brojilo"	INTEGER NOT NULL UNIQUE,
-    "ime"	TEXT NOT NULL,
+    "korisnik"	TEXT NOT NULL,
     "adresa"	TEXT NOT NULL,
     "grad"	TEXT NOT NULL,
     PRIMARY KEY("brojilo")
@@ -86,18 +88,27 @@ def process_request(request, value):
 
     match request:
         case ETipZahteva.KORISNIK:
-            raise NotImplementedError
+            cur.execute('''
+            select k.brojilo, adresa, grad, potrosnja, mesec
+            from Korisnici k, Potrosnja p
+            where k.brojilo = p.brojilo and k.korisnik = ?
+            ''', (value, ))
+            lista = cur.fetchall()
+            potrosnje = list()
+            brojilo, adresa, grad = lista[0][0], lista[0][1], lista[0][2]
+            for item in lista:
+                potrosnje.append((item[4],item[3]))
+            return (value, IzvestajKorisnik(brojilo, adresa, grad, potrosnje))
 
         case ETipZahteva.MESEC:
             raise NotImplementedError
 
         case ETipZahteva.GRAD:
-            cur.execute('SELECT * FROM Korisnici WHERE grad = ?', (value, ))
-            ret_val = cur.fetchall()
+            raise NotImplementedError
 
         case ETipZahteva.ADD_USER:
             try:
-                cur.execute('INSERT INTO Korisnici (brojilo, ime, adresa, grad) VALUES (?, ?, ?, ?)', (value[0],value[1], value[2], value[3]))
+                cur.execute('INSERT INTO Korisnici (brojilo, korisnik, adresa, grad) VALUES (?, ?, ?, ?)', (value[0],value[1], value[2], value[3]))
             except sqlite3.IntegrityError:
                 return 'Korisnik sa prosldjenim brojilom vec postoji'
             conn.commit()
@@ -126,6 +137,37 @@ def process_request(request, value):
                 ret_val = True
             else:
                 ret_val = False
+
+        case ETipZahteva.DB_INSERTS:
+            try:
+                cur.executescript('''
+                DELETE FROM Potrosnja;
+                DELETE FROM Korisnici;
+
+                INSERT INTO "Korisnici"("brojilo","korisnik","adresa","grad") VALUES (1234,'Stefan Scekic','Kozaracka 1','Novi Sad');
+                INSERT INTO "Korisnici"("brojilo","korisnik","adresa","grad") VALUES (4568,'Sasa Kitic','Kozaracka 1','Novi Sad');
+                INSERT INTO "Korisnici"("brojilo","korisnik","adresa","grad") VALUES (9812,'Dragana Banic','Kozaracka 1','Novi Sad');
+                INSERT INTO "Korisnici"("brojilo","korisnik","adresa","grad") VALUES (7812,'Uros Petrov','Kozaracka 1','Novi Sad');
+                INSERT INTO "Korisnici"("brojilo","korisnik","adresa","grad") VALUES (1111,'Ivan','Sindjeliceva 2','Kikinda');
+                INSERT INTO "Korisnici"("brojilo","korisnik","adresa","grad") VALUES (5555,'Lidija Erceg','Contikarska 2A','Novi Sad');
+                INSERT INTO "Korisnici"("brojilo","korisnik","adresa","grad") VALUES (6666,'Sasa','Heroja Pinkija 124','Novi Sad');
+
+                INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (1111, 240.5, 'JUN');
+                INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (1111, 120, 'JUL');
+                INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (1234, 220.5, 'JUN');
+                INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (4568, 220.2, 'JUN');
+                INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (4568, 500, 'JAN');
+                INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (9812, 450.98, 'JAN');
+                INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (9812, 600.112, 'FEB');
+                INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (7812, 516.4, 'MAR');
+                INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (5555, 312, 'MAR');
+                INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (6666, 437.88, 'APR');
+                ''')
+            except Exception as e:
+                print(e)
+                return 'Nesto je poslo po zlu'
+            else:
+                return 'Tabela uspesno izmenjena'
 
     return ret_val
 

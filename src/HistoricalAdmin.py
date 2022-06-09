@@ -30,8 +30,8 @@ def IspisKorisnika():
 
     odgovor = posalji_zahtev(zahtev, vrednost)
     for item in odgovor:
-        brojilo, ime, adresa, grad = item
-        print(brojilo, ime, adresa, grad)
+        brojilo, korisnik, adresa, grad = item
+        print(f'{brojilo},  {korisnik:24}{adresa:24}{grad}')
 
 def DodajKorisnika():
     zahtev = ETipZahteva.ADD_USER
@@ -43,10 +43,10 @@ def DodajKorisnika():
         input('Press ENTER to continue...')
         return
         
-    ime = input('ime = ')
+    korisnik = input('korisnik = ')
     adresa  = input('adresa = ')
     grad = input('grad = ')
-    vrednost = (brojilo, ime, adresa, grad)
+    vrednost = (brojilo, korisnik, adresa, grad)
 
     odgovor = posalji_zahtev(zahtev, vrednost)
     print(odgovor)
@@ -68,6 +68,23 @@ def KorisnikPostoji(brojilo):
 
     return return_value
 
+def PredefinisanaBaza():
+    odgovor = posalji_zahtev(ETipZahteva.DB_INSERTS, None)
+    print(odgovor)
+
+def IzvestajKorisnikHandler():
+    zahtev = ETipZahteva.KORISNIK
+
+    korisnik = input('Korisnik = ')
+
+    odgovor = posalji_zahtev(zahtev, korisnik)
+    print()
+    print(odgovor[0])
+    print(f'Podatci :\n\tbrojilo : {odgovor[1].brojilo}\n\tadresa : {odgovor[1].adresa}, {odgovor[1].grad}')
+    print('Potrosnje : ')
+    for item in odgovor[1].lista:
+        print(f'\t{item[0]} : {item[1]}')
+    print()
 
 def main(): 
     while True:
@@ -77,6 +94,8 @@ def main():
         print('1. Svi korisnici')
         print('2. Dodaj korisnika')
         print('3. Izbrisi korisnika')
+        print('4. Izvestaj po korisniku')
+        print('9. Ocitaj predefinisanu bazu')
         print('0. za izlaz')
 
         answer = int(input())
@@ -90,6 +109,11 @@ def main():
 
             case 3:
                 IzbrisiKorisnika()
+            case 4:
+                IzvestajKorisnikHandler()
+
+            case 9:
+                PredefinisanaBaza()
 
             case 0:
                 os.system('cls')
