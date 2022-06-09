@@ -86,6 +86,23 @@ def IzvestajKorisnikHandler():
         print(f'\t{item[0]} : {item[1]}')
     print()
 
+def IzvestajMesecHandler():
+    zahtev = ETipZahteva.MESEC
+
+    mesec = input('Mesec = ')
+
+    odgovor = posalji_zahtev(zahtev, mesec)
+
+    print()
+    print(f'Potrosnja u mesecu {odgovor[0]}')
+    print(f'{"BROJILO":10}{"KORISNIK":24}{"ADRESA":24}{"GRAD":12}{"POTROSNJA":10}')
+    for item in odgovor[1].items:
+        print(f'{item.brojilo:<10}{item.korisnik:24}{item.adresa:24}{item.grad:12}{item.potrosnja:10}')
+    print()
+
+def IzvestajGradHandler():
+    raise NotImplementedError
+
 def main(): 
     while True:
         os.system('cls')
@@ -95,6 +112,8 @@ def main():
         print('2. Dodaj korisnika')
         print('3. Izbrisi korisnika')
         print('4. Izvestaj po korisniku')
+        print('5. Izvestaj po mesecu')
+        print('6. izvestaj po gradu')
         print('9. Ocitaj predefinisanu bazu')
         print('0. za izlaz')
 
@@ -102,23 +121,43 @@ def main():
 
         match answer:
             case 1:
-                IspisKorisnika()
-
+                try:
+                    IspisKorisnika()
+                except Exception as e:
+                    print(e)
             case 2:
-                DodajKorisnika()
-
+                try:
+                    DodajKorisnika()
+                except Exception as e:
+                    print(e)
             case 3:
-                IzbrisiKorisnika()
+                try:
+                    IzbrisiKorisnika()
+                except Exception as e:
+                    print(e)
             case 4:
-                IzvestajKorisnikHandler()
-
+                try:
+                    IzvestajKorisnikHandler()
+                except Exception as e:
+                    print(e)                
+            case 5:
+                try:
+                    IzvestajMesecHandler()
+                except Exception as e:
+                    print(e)
+            case 6:
+                try:
+                    IzvestajGradHandler()
+                except Exception as e:
+                    print(e)
             case 9:
-                PredefinisanaBaza()
-
+                try:
+                    PredefinisanaBaza()
+                except Exception as e:
+                    print(e)
             case 0:
                 os.system('cls')
                 break
-
             case _:
                 print('???')
 

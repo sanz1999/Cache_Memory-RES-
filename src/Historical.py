@@ -9,6 +9,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from models.ETipZahteva import ETipZahteva
 from models.ConnectionParams import HOST, DB_PORT, R_PORT
 from models.IzvestajPoKorisniku import IzvestajKorisnik
+from models.IzvestajPoMesecu import IzvestajMesec, IzvestajMesecItem 
 
 #Instanca selektora za asinhroni rad soketa
 sel = selectors.DefaultSelector()
@@ -93,15 +94,24 @@ def process_request(request, value):
             from Korisnici k, Potrosnja p
             where k.brojilo = p.brojilo and k.korisnik = ?
             ''', (value, ))
-            lista = cur.fetchall()
+            query = cur.fetchall()
             potrosnje = list()
-            brojilo, adresa, grad = lista[0][0], lista[0][1], lista[0][2]
-            for item in lista:
+            brojilo, adresa, grad = query[0][0], query[0][1], query[0][2]
+            for item in query:
                 potrosnje.append((item[4],item[3]))
             return (value, IzvestajKorisnik(brojilo, adresa, grad, potrosnje))
 
         case ETipZahteva.MESEC:
-            raise NotImplementedError
+            cur.execute('''
+            SELECT k.brojilo, korisnik, adresa, grad, potrosnja
+            FROM Korisnici k, Potrosnja p
+            WHERE k.brojilo = p.brojilo and mesec = ?
+            ''', (value, ))
+            query = cur.fetchall()
+            items = list()
+            for item in query:
+                items.append(IzvestajMesecItem(item[0], item[1], item[2], item[3], item[4]))
+            return (value, IzvestajMesec(items))
 
         case ETipZahteva.GRAD:
             raise NotImplementedError
