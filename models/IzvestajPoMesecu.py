@@ -1,11 +1,11 @@
-class PoMesecu:
-    def __init__(self, brojilo : int, ime : str, prezime :str, grad : str, adresa : str, potrosnja : int):
+class IzvestajMesec():
+    def __init__(self, items : list()):
+        self.items = items
+
+class IzvestajMesecItem():
+    def __init__(self, brojilo : int, korisnik : str, adresa : str, grad : str, potrosnja : int):
         self.brojilo = brojilo
-        self.ime = ime
-        self.prezime = prezime
+        self.korisnik = korisnik
         self.grad = grad
         self.adresa = adresa
         self.potrosnja = potrosnja
-
-
-       
