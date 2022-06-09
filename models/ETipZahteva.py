@@ -14,5 +14,6 @@ class ETipZahteva(Enum):
      REMOVE_CON = 7
      GET_ALL_USERS = 8
      EXISTS_USER = 9
+     DB_INSERTS = 10
 
 
