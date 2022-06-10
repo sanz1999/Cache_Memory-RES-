@@ -1,24 +1,10 @@
-from email.errors import MessageError
-
+class IzvestajKorisnikItem():
+    def __init__(self, adresa : str, grad : str, potrosnje : list):
+        self.adresa = adresa
+        self.grad = grad
+        self.potrosnje = potrosnje
 
 class IzvestajKorisnik():
-    def __init__(self, brojilo : int, adresa : str, grad : str, lista : list):
-     self.brojilo = brojilo
-     self.adresa = adresa
-     self.grad = grad         
-     self.lista = lista
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def __init__(self, korisnik : str, items : dict):
+        self.korisnik = korisnik
+        self.items = items

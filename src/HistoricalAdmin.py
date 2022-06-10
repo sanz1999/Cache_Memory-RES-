@@ -1,4 +1,6 @@
+from calendar import month
 from ctypes import sizeof
+from datetime import date
 import socket, pickle, sys, os
 
 #Neka glupost da bi mogo da importujem iz modela
@@ -8,6 +10,22 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from models.ConnectionParams import HOST, DB_PORT, R_PORT
 from models.ETipZahteva import ETipZahteva
     
+def dumping_buffer_zahtev(zahtev, vrednost):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+        client_socket.connect((HOST, DB_PORT))
+        data = bytes()
+
+        pack = pickle.dumps((zahtev, vrednost))
+        client_socket.sendall(pack)
+        
+        while True:
+            recv_data = client_socket.recv(4096)
+            if not recv_data:
+                break
+            data += recv_data
+
+        return pickle.loads(data)
+
 def posalji_zahtev(zahtev, vrednost):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
         client_socket.connect((HOST, R_PORT))
@@ -72,51 +90,72 @@ def PredefinisanaBaza():
     odgovor = posalji_zahtev(ETipZahteva.DB_INSERTS, None)
     print(odgovor)
 
-def IzvestajKorisnikHandler():
+def IzvestajKorisnikHandler(korisnik : str):
     zahtev = ETipZahteva.KORISNIK
 
-    korisnik = input('Korisnik = ')
-
     odgovor = posalji_zahtev(zahtev, korisnik)
-    print()
-    print(odgovor[0])
-    print(f'Podatci :\n\tbrojilo : {odgovor[1].brojilo}\n\tadresa : {odgovor[1].adresa}, {odgovor[1].grad}')
-    print('Potrosnje : ')
-    for item in odgovor[1].lista:
-        print(f'\t{item[0]} : {item[1]}')
-    print()
 
-def IzvestajMesecHandler():
+    #ispis odgovora
+    print()
+    for key, value in (odgovor.items).items():
+        print(f'{"BROJILO":<10}{"KORISNIK":24}{"ADRESA":24}{"GRAD":12}')
+        print(f'{key:<10}{odgovor.korisnik:24}{value.adresa:24}{value.grad:12}')
+        print()
+        print(f'{"POTROSNJA":>15}')   
+        for item in value.potrosnje:
+            print(f'{item[0]:5}{item[1]:10}')
+        print()
+
+def IzvestajMesecHandler(mesec : str):
     zahtev = ETipZahteva.MESEC
-
-    mesec = input('Mesec = ')
 
     odgovor = posalji_zahtev(zahtev, mesec)
 
+    #ispis odgovora
     print()
-    print(f'Potrosnja u mesecu {odgovor[0]}')
+    print(f'Potrosnja u mesecu {odgovor.mesec}')
     print(f'{"BROJILO":10}{"KORISNIK":24}{"ADRESA":24}{"GRAD":12}{"POTROSNJA":10}')
-    for item in odgovor[1].items:
+    for item in odgovor.items:
         print(f'{item.brojilo:<10}{item.korisnik:24}{item.adresa:24}{item.grad:12}{item.potrosnja:10}')
     print()
 
-def IzvestajGradHandler():
+def IzvestajGradHandler(grad : str):
     zahtev = ETipZahteva.GRAD
-
-    grad = input('Grad = ')
 
     odgovor = posalji_zahtev(zahtev, grad)
 
+    #ispis odgovora
     print()
-    print(f'Potrosanja u gradu {odgovor[0]}')
+    print(f'Potrosanja u gradu {odgovor.grad}')
     
-    for key, value in (odgovor[1].items).items():
+    for key, value in (odgovor.items).items():
         print(f'Mesec {key}')
         print(f'\t{"BROJILO":<10}{"KORISNIK":24}{"ADRESA":24}{"POTROSNJA":10}')        
         for item in value:
             print(f'\t{item.brojilo:<10}{item.korisnik:24}{item.adresa:24}{item.potrosnja:10}')
         print()
 
+def IspisPotrosnje():
+    zahtev = ETipZahteva.GET_ALL_CON
+    vrednost = None
+
+    odgovor = posalji_zahtev(zahtev, vrednost)
+
+    print(f'{"BROJILO":12}{"POTROSNJA":16}{"MESEC":6}')
+    for item in odgovor:
+        brojilo, potrosnja, mesec = item
+        print(f'{brojilo:<12}{potrosnja:<16}{mesec:6}')
+
+
+def DodajPotrosnju(vrednost : list):
+    zahtev = ETipZahteva.ADD_CON
+
+    odgovor = dumping_buffer_zahtev(zahtev, vrednost)
+
+    print(odgovor)
+
+def IzbrisiPotrosnju():
+    raise NotImplementedError
 
 def main(): 
     while True:
@@ -129,7 +168,11 @@ def main():
         print('4. Izvestaj po korisniku')
         print('5. Izvestaj po mesecu')
         print('6. izvestaj po gradu')
-        print('9. Ocitaj predefinisanu bazu')
+        print('7. Sve potrosnje')
+        print('8. Dodaj potrosnju')
+        print('9. Izbrisi potrosnju')
+
+        print('10. Ocitaj predefinisanu bazu')
         print('0. za izlaz')
 
         answer = int(input())
@@ -152,20 +195,44 @@ def main():
                     print(e)
             case 4:
                 try:
-                    IzvestajKorisnikHandler()
+                    korisnik = input('Korisnik = ')
+                    IzvestajKorisnikHandler(korisnik)
                 except Exception as e:
                     print(e)                
             case 5:
+                mesec = input('Mesec = ')
                 try:
-                    IzvestajMesecHandler()
+                    IzvestajMesecHandler(mesec)
                 except Exception as e:
                     print(e)
             case 6:
                 try:
-                    IzvestajGradHandler()
+                    grad = input('Grad = ')
+                    IzvestajGradHandler(grad)
+                except Exception as e:
+                    print(e)
+            case 7:
+                try:
+                    IspisPotrosnje()
+                except Exception as e:
+                    print(e)
+            case 8:
+                potrosnje = list()
+
+                brojilo = input('Brojilo = ')
+                potrosnja = float(input('Potrosnja = '))
+
+                potrosnje.append((brojilo, potrosnja))
+                try:
+                    DodajPotrosnju(potrosnje)
                 except Exception as e:
                     print(e)
             case 9:
+                try:
+                    IzbrisiPotrosnju()
+                except Exception as e:
+                    print(e)
+            case 10:
                 try:
                     PredefinisanaBaza()
                 except Exception as e:

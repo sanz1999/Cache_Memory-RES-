@@ -1,3 +1,4 @@
+from datetime import date
 from logging import exception
 from optparse import Values
 import sqlite3
@@ -9,7 +10,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from models.ETipZahteva import ETipZahteva
 from models.ConnectionParams import HOST, DB_PORT, R_PORT
-from models.IzvestajPoKorisniku import IzvestajKorisnik
+from models.IzvestajPoKorisniku import IzvestajKorisnik, IzvestajKorisnikItem
 from models.IzvestajPoMesecu import IzvestajMesec, IzvestajMesecItem 
 from models.IzvestajPoGradu import IzvestajGrad, IzvestajGradItem
 
@@ -19,6 +20,9 @@ sel = selectors.DefaultSelector()
 #Konekcija sa SQLite DataBase
 conn = sqlite3.connect('../data/dataBase.db')
 cur = conn.cursor()
+
+#Mapa meseca
+meseci = {1 : 'JAN', 2 : 'FEB', 3 : 'MAR', 4 : 'APR', 5 : 'MAY', 6 : 'JUN', 7 : 'JUL', 8 : 'AUG', 9 : 'SEP', 10 : 'OCT', 11 : 'NOV', 12 : 'DEC'}
 
 #Pravljenje Tabela u slucaju da ne postoje
 cur.executescript('''
@@ -103,6 +107,9 @@ def service_connection(key, mask):
                 sel.unregister(sock)
                 sock.close()
                 
+def get_month():
+    return meseci[date.today().month]
+    
 
 #Obrada zahteva
 def process_request(request, value):
@@ -116,11 +123,11 @@ def process_request(request, value):
             where k.brojilo = p.brojilo and k.korisnik = ?
             ''', (value, ))
             query = cur.fetchall()
-            potrosnje = list()
-            brojilo, adresa, grad = query[0][0], query[0][1], query[0][2]
+            items = dict()
             for item in query:
-                potrosnje.append((item[4],item[3]))
-            return (value, IzvestajKorisnik(brojilo, adresa, grad, potrosnje))
+                items[item[0]] = items.get(item[0], IzvestajKorisnikItem(item[1], item[2], list()))
+                items[item[0]].potrosnje.append((item[4], item[3]))
+            return IzvestajKorisnik(value, items)
 
         case ETipZahteva.MESEC:
             cur.execute('''
@@ -132,7 +139,7 @@ def process_request(request, value):
             items = list()
             for item in query:
                 items.append(IzvestajMesecItem(item[0], item[1], item[2], item[3], item[4]))
-            return (value, IzvestajMesec(items))
+            return IzvestajMesec(value, items)
 
         case ETipZahteva.GRAD:
             cur.execute('''
@@ -147,7 +154,7 @@ def process_request(request, value):
                 grad_item = IzvestajGradItem(item[0], item[1], item[2], item[3])
                 items[item[4]] = items.get(item[4], list())
                 items[item[4]].append(grad_item)
-            return (value, IzvestajGrad(items))
+            return IzvestajGrad(value, items)
 
         case ETipZahteva.ADD_USER:
             try:
@@ -158,7 +165,15 @@ def process_request(request, value):
             ret_val = 'Uspesno dodato'
 
         case ETipZahteva.ADD_CON:
-            raise NotImplementedError
+            #Ocekuje se da je value lista tuple-ova
+            mesec = get_month()
+            for brojilo, potrosnja in value:
+                try:
+                    cur.execute('INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (?, ?, ?)', (brojilo, potrosnja, mesec))
+                except:
+                    return 'Doslo je do errora'
+            conn.commit()
+            return 'Uspesno dodavanje'
 
         case ETipZahteva.REMOVE_USER:
             cur.execute('DELETE FROM Korisnici where brojilo = ?', (value, ))
@@ -171,6 +186,10 @@ def process_request(request, value):
         case ETipZahteva.GET_ALL_USERS:
             cur.execute('SELECT * FROM Korisnici')
             ret_val = cur.fetchall()
+
+        case ETipZahteva.GET_ALL_CON:
+            cur.execute('SELECT * FROM potrosnja')
+            return cur.fetchall()
 
         case ETipZahteva.EXISTS_USER:
             cur.execute('SELECT * FROM Korisnici WHERE brojilo = ?', (value, ))
