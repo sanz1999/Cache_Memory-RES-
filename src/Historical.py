@@ -1,4 +1,5 @@
 from logging import exception
+from optparse import Values
 import sqlite3
 import socket, pickle, selectors, types, sys, os
 
@@ -10,6 +11,7 @@ from models.ETipZahteva import ETipZahteva
 from models.ConnectionParams import HOST, DB_PORT, R_PORT
 from models.IzvestajPoKorisniku import IzvestajKorisnik
 from models.IzvestajPoMesecu import IzvestajMesec, IzvestajMesecItem 
+from models.IzvestajPoGradu import IzvestajGrad, IzvestajGradItem
 
 #Instanca selektora za asinhroni rad soketa
 sel = selectors.DefaultSelector()
@@ -34,6 +36,25 @@ CREATE TABLE IF NOT EXISTS "Potrosnja" (
 	PRIMARY KEY("brojilo","mesec"),
 	FOREIGN KEY("brojilo") REFERENCES "Korisnici"("brojilo")
 );
+CREATE TABLE IF NOT EXISTS "meseci" (
+	"id"	INTEGER,
+	"mesec"	TEXT NOT NULL UNIQUE,
+	PRIMARY KEY("id")
+);
+DELETE FROM meseci;
+
+INSERT INTO "meseci"("id", "mesec") VALUES (1, 'JAN');
+INSERT INTO "meseci"("id", "mesec") VALUES (2, 'FEB');
+INSERT INTO "meseci"("id", "mesec") VALUES (3, 'MAR');
+INSERT INTO "meseci"("id", "mesec") VALUES (4, 'APR');
+INSERT INTO "meseci"("id", "mesec") VALUES (5, 'MAY');
+INSERT INTO "meseci"("id", "mesec") VALUES (6, 'JUN');
+INSERT INTO "meseci"("id", "mesec") VALUES (7, 'JUL');
+INSERT INTO "meseci"("id", "mesec") VALUES (8, 'AUG');
+INSERT INTO "meseci"("id", "mesec") VALUES (9, 'SEP');
+INSERT INTO "meseci"("id", "mesec") VALUES (10, 'OCT');
+INSERT INTO "meseci"("id", "mesec") VALUES (11, 'NOV');
+INSERT INTO "meseci"("id", "mesec") VALUES (12, 'DEC');
 ''')
 
 #Primanje konekcije
@@ -114,7 +135,19 @@ def process_request(request, value):
             return (value, IzvestajMesec(items))
 
         case ETipZahteva.GRAD:
-            raise NotImplementedError
+            cur.execute('''
+            SELECT k.brojilo, korisnik, adresa, potrosnja, p.mesec
+            FROM Korisnici k, Potrosnja p, meseci m
+            WHERE k.brojilo = p.brojilo and grad = ? and p.mesec = m.mesec
+            ORDER BY m.id
+            ''', (value, ))
+            query = cur.fetchall()
+            items = dict()
+            for item in query:
+                grad_item = IzvestajGradItem(item[0], item[1], item[2], item[3])
+                items[item[4]] = items.get(item[4], list())
+                items[item[4]].append(grad_item)
+            return (value, IzvestajGrad(items))
 
         case ETipZahteva.ADD_USER:
             try:

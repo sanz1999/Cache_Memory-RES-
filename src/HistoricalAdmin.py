@@ -101,7 +101,22 @@ def IzvestajMesecHandler():
     print()
 
 def IzvestajGradHandler():
-    raise NotImplementedError
+    zahtev = ETipZahteva.GRAD
+
+    grad = input('Grad = ')
+
+    odgovor = posalji_zahtev(zahtev, grad)
+
+    print()
+    print(f'Potrosanja u gradu {odgovor[0]}')
+    
+    for key, value in (odgovor[1].items).items():
+        print(f'Mesec {key}')
+        print(f'\t{"BROJILO":<10}{"KORISNIK":24}{"ADRESA":24}{"POTROSNJA":10}')        
+        for item in value:
+            print(f'\t{item.brojilo:<10}{item.korisnik:24}{item.adresa:24}{item.potrosnja:10}')
+        print()
+
 
 def main(): 
     while True:
