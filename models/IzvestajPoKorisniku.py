@@ -1,29 +1,10 @@
-from email.errors import MessageError
+class IzvestajKorisnikItem():
+    def __init__(self, adresa : str, grad : str, potrosnje : list):
+        self.adresa = adresa
+        self.grad = grad
+        self.potrosnje = potrosnje
 
-
-class PoKorisniku:
-    def __init__(self, ime : str, prezime : str, adresa : str, grad : str, lista : list):
-     self.ime = ime
-     self.prezime = prezime
-     self.adresa = adresa
-     self.grad = grad 
- 
-     for item in lista :
-         if type(item) != tuple(str, int):
-             print()          
-     self.lista = lista
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class IzvestajKorisnik():
+    def __init__(self, korisnik : str, items : dict):
+        self.korisnik = korisnik
+        self.items = items
