@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class ETipZahteva(Enum):
      #Tipovi zahteva za Readera 
      KORISNIK = 1 

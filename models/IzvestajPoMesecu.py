@@ -9,4 +9,3 @@ class IzvestajMesec():
     def __init__(self,mesec : str, items : list):
         self.mesec = mesec
         self.items = items
-        
