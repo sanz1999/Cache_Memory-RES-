@@ -9,11 +9,11 @@ BUFFER_SIZE = 7
 LOCALHOST = socket.gethostbyname(socket.gethostname())
 DUMPINGBUFFER_PORT = 42500
 HISTORICAL_PORT = 42502
-#ovde ce ici implementacija queua
 
 red = deque()
 
 def ListaZaSlanje():
+
     listaZaSlanje =[]
 
     for i in range(BUFFER_SIZE):
@@ -35,7 +35,7 @@ def PosaljiPodatkeHistorical():
     
     
 def UslovZaSlanjePodataka():
-    if len(red) >= 7:
+    if len(red) >= BUFFER_SIZE:
         return True
     else :
         return False
@@ -59,6 +59,7 @@ async def main():
         dumpingbufferSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         dumpingbufferSocket.bind((LOCALHOST,DUMPINGBUFFER_PORT))
         dumpingbufferSocket.listen()
+        print("Kreirana")
         writer,address = dumpingbufferSocket.accept()
         print(f"Povezan Writer adresa:{address}")
         data = writer.recv(DATA_SIZE)
