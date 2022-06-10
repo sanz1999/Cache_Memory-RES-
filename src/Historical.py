@@ -1,6 +1,4 @@
 from datetime import date
-from logging import exception
-from optparse import Values
 import sqlite3
 import socket, pickle, selectors, types, sys, os
 
