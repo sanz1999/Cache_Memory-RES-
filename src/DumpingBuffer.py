@@ -1,14 +1,14 @@
 from collections import deque
-import socket
-import pickle
-import asyncio
+import socket,pickle,asyncio,os,sys
+from typing import final 
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-DATA_SIZE = 2048
+from models.ConnectionParams import HOST, DB_PORT, W_PORT
+
+DATA_SIZE = 1024
 BUFFER_SIZE = 7
-LOCALHOST = socket.gethostbyname(socket.gethostname())
-DUMPINGBUFFER_PORT = 42500
-HISTORICAL_PORT = 42502
 
 red = deque()
 
@@ -24,7 +24,7 @@ def ListaZaSlanje():
 def PosaljiPodatkeHistorical():
     historicalSocket = socket.socket((socket.AF_INET,socket.SOCK_STREAM))
     try:
-        historicalSocket.connect(LOCALHOST,HISTORICAL_PORT)
+        historicalSocket.connect(HOST,DB_PORT)
     except:
         print("Povezivanje na Historical neuspesno")
     else:
@@ -33,7 +33,11 @@ def PosaljiPodatkeHistorical():
         historicalSocket.send(data_string)
         print("Uspesno poslato")
     
+def pozalji():
+    lista = ListaZaSlanje()
+    print("Skinuto 7 iz reda")
     
+
 def UslovZaSlanjePodataka():
     if len(red) >= BUFFER_SIZE:
         return True
@@ -43,34 +47,43 @@ def UslovZaSlanjePodataka():
 async def SaljiPodatke():
     while True:
         if UslovZaSlanjePodataka():
-            PosaljiPodatkeHistorical()
+            pozalji()
+            #PosaljiPodatkeHistorical()
         else:
+            print("ziv sam 2 sekunde")
             await asyncio.sleep(2)
         
 def PrimiPodatke(data):
     server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    server.bind((LOCALHOST,DUMPINGBUFFER_PORT))
+    server.bind((HOST,W_PORT))
     server.listen()
 
 
 async def main():
     asyncio.create_task(SaljiPodatke())
-    while True:
+
+    try:
         dumpingbufferSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        dumpingbufferSocket.bind((LOCALHOST,DUMPINGBUFFER_PORT))
+        dumpingbufferSocket.bind((HOST,W_PORT))
         dumpingbufferSocket.listen()
         print("Kreirana")
-        writer,address = dumpingbufferSocket.accept()
-        print(f"Povezan Writer adresa:{address}")
-        data = writer.recv(DATA_SIZE)
+        while True:
+            writer,address = dumpingbufferSocket.accept()
+            print(f"Povezan Writer adresa:{address}")
+            data = writer.recv(DATA_SIZE)
+            data = pickle.loads(data)
+            red.append(data)
+            print(type(data))
+            print(data)
+            print(f"Br elem u que:{len(red)}")
+            
+            
+    except KeyboardInterrupt:                           #omogucava Ctrl+C prekid programa
+        print("Caught keyboard interrupt, exiting")
+    finally:
         dumpingbufferSocket.close()
-        data = pickle.loads(data)
-        red.append(data)
-        print("Podaci uspesno upisani u queue")
-        
+        pass
 
-        
-    
 
 
 if __name__ == "__main__":
