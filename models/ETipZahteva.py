@@ -10,7 +10,7 @@ class ETipZahteva(Enum):
      ADD_USER = 4
      REMOVE_USER = 5
      ADD_CON = 6         #Ovo korisnti Dumping Buffer
-     REMOVE_CON = 7
+     REMOVE_CON = 7      #JA STEVO SA OVIM NEMAM NISTA
      GET_ALL_USERS = 8
      EXISTS_USER = 9
      DB_INSERTS = 10

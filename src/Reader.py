@@ -1,23 +1,16 @@
 import pickle, os, sys
 import socket
 
-
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from models.IzvestajPoGradu import *
+from models.IzvestajPoKorisniku import *
+from models.IzvestajPoMesecu import *
 
 from models.ConnectionParams import HOST, DB_PORT, R_PORT
 from models.ETipZahteva import ETipZahteva
 
-
-#konekcija sa soketom i slanje zahtjeva
-#slanje zahtjeva
-#funkcije za ispis
-#sa tipom zahtjeva je proslijedjen parametar po kome se pretrazuje(za sva 3 tipa)
-
-
-
- 
 def main():
      while True:
         os.system('cls')

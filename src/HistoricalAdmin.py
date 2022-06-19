@@ -42,7 +42,7 @@ def posalji_zahtev(zahtev, vrednost):
 
         return pickle.loads(data)
 
-def IspisKorisnika():
+def ispis_korisnika():
     zahtev = ETipZahteva.GET_ALL_USERS
     vrednost = None
 
@@ -51,7 +51,7 @@ def IspisKorisnika():
         brojilo, korisnik, adresa, grad = item
         print(f'{brojilo},  {korisnik:24}{adresa:24}{grad}')
 
-def DodajKorisnika():
+def dodaj_korisnika():
     zahtev = ETipZahteva.ADD_USER
 
     try:
@@ -69,28 +69,28 @@ def DodajKorisnika():
     odgovor = posalji_zahtev(zahtev, vrednost)
     print(odgovor)
 
-def IzbrisiKorisnika():
+def izbrisi_korisnika():
     zahtev = ETipZahteva.REMOVE_USER
 
     brojilo = input('brojilo = ')
-    if not KorisnikPostoji(brojilo):
+    if not korisnik_postoji(brojilo):
         print('Korisnik ne postoji')
         return
     
     odgovor = posalji_zahtev(zahtev, brojilo)
     print(odgovor)
 
-def KorisnikPostoji(brojilo):
+def korisnik_postoji(brojilo):
     zahtev = ETipZahteva.EXISTS_USER
     return_value = posalji_zahtev(zahtev, brojilo)
 
     return return_value
 
-def PredefinisanaBaza():
+def predefinisana_baza():
     odgovor = posalji_zahtev(ETipZahteva.DB_INSERTS, None)
     print(odgovor)
 
-def IzvestajKorisnikHandler(korisnik : str):
+def izvestaj_korisnik_handler(korisnik : str):
     zahtev = ETipZahteva.KORISNIK
 
     odgovor = posalji_zahtev(zahtev, korisnik)
@@ -106,7 +106,7 @@ def IzvestajKorisnikHandler(korisnik : str):
             print(f'{item[0]:5}{item[1]:10}')
         print()
 
-def IzvestajMesecHandler(mesec : str):
+def izvestaj_mesec_handler(mesec : str):
     zahtev = ETipZahteva.MESEC
 
     odgovor = posalji_zahtev(zahtev, mesec)
@@ -119,7 +119,7 @@ def IzvestajMesecHandler(mesec : str):
         print(f'{item.brojilo:<10}{item.korisnik:24}{item.adresa:24}{item.grad:12}{item.potrosnja:10}')
     print()
 
-def IzvestajGradHandler(grad : str):
+def izvestaj_grad_handler(grad : str):
     zahtev = ETipZahteva.GRAD
 
     odgovor = posalji_zahtev(zahtev, grad)
@@ -135,7 +135,7 @@ def IzvestajGradHandler(grad : str):
             print(f'\t{item.brojilo:<10}{item.korisnik:24}{item.adresa:24}{item.potrosnja:10}')
         print()
 
-def IspisPotrosnje():
+def ispis_potrosnje():
     zahtev = ETipZahteva.GET_ALL_CON
     vrednost = None
 
@@ -147,14 +147,14 @@ def IspisPotrosnje():
         print(f'{brojilo:<12}{potrosnja:<16}{mesec:6}')
 
 
-def DodajPotrosnju(vrednost : list):
+def dodaj_potrosnju(vrednost : list):
     zahtev = ETipZahteva.ADD_CON
 
     odgovor = dumping_buffer_zahtev(zahtev, vrednost)
 
     print(odgovor)
 
-def IzbrisiPotrosnju():
+def izbrisi_potrosnju():
     raise NotImplementedError
 
 def main(): 
@@ -179,43 +179,22 @@ def main():
 
         match answer:
             case 1:
-                try:
-                    IspisKorisnika()
-                except Exception as e:
-                    print(e)
-            case 2:
-                try:
-                    DodajKorisnika()
-                except Exception as e:
-                    print(e)
-            case 3:
-                try:
-                    IzbrisiKorisnika()
-                except Exception as e:
-                    print(e)
-            case 4:
-                try:
-                    korisnik = input('Korisnik = ')
-                    IzvestajKorisnikHandler(korisnik)
-                except Exception as e:
-                    print(e)                
+                ispis_korisnika()
+            case 2:                
+                dodaj_korisnika()                
+            case 3:                
+                izbrisi_korisnika()                
+            case 4:                
+                korisnik = input('Korisnik = ')
+                izvestaj_korisnik_handler(korisnik)                                
             case 5:
                 mesec = input('Mesec = ')
-                try:
-                    IzvestajMesecHandler(mesec)
-                except Exception as e:
-                    print(e)
+                izvestaj_mesec_handler(mesec)
             case 6:
-                try:
-                    grad = input('Grad = ')
-                    IzvestajGradHandler(grad)
-                except Exception as e:
-                    print(e)
+                grad = input('Grad = ')
+                izvestaj_grad_handler(grad)
             case 7:
-                try:
-                    IspisPotrosnje()
-                except Exception as e:
-                    print(e)
+                ispis_potrosnje()
             case 8:
                 potrosnje = list()
 
@@ -223,20 +202,11 @@ def main():
                 potrosnja = float(input('Potrosnja = '))
 
                 potrosnje.append((brojilo, potrosnja))
-                try:
-                    DodajPotrosnju(potrosnje)
-                except Exception as e:
-                    print(e)
+                dodaj_potrosnju(potrosnje)
             case 9:
-                try:
-                    IzbrisiPotrosnju()
-                except Exception as e:
-                    print(e)
+                izbrisi_potrosnju()
             case 10:
-                try:
-                    PredefinisanaBaza()
-                except Exception as e:
-                    print(e)
+                predefinisana_baza()
             case 0:
                 os.system('cls')
                 break
