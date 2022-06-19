@@ -18,6 +18,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 #Importovanje zajednickih promenljivih koje definisu parametre povezivanja
 from models.ConnectionParams import HOST, DB_PORT, W_PORT
+from models.ETipZahteva import ETipZahteva
 
 #Velicina podatka koji primamo prilikom komunikacije
 DATA_SIZE = 1024
@@ -72,7 +73,7 @@ def posalji_podatke(red:deque):
         print("Nije moguca konekcija na Historical")
     else:       
         lista = napravi_listu_za_slanje_podataka(red)
-        data_string = pickle.dumps(lista)
+        data_string = pickle.dumps((ETipZahteva.ADD_CON, lista))
         historical.send(data_string)
         print("Uspesno poslato")
 

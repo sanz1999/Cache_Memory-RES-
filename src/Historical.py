@@ -16,7 +16,7 @@ from models.IzvestajPoGradu import IzvestajGrad, IzvestajGradItem
 sel = selectors.DefaultSelector()
 
 #Konekcija sa SQLite DataBase
-conn = sqlite3.connect('../data/dataBase.json')
+conn = sqlite3.connect('../data/dataBase.db')
 cur = conn.cursor()
 
 #Mapa meseca
@@ -179,10 +179,12 @@ def process_request(request, value):
         case ETipZahteva.ADD_CON:
             #Ocekuje se da je value lista tuple-ova
             mesec = get_month()
+            print(value)
             for brojilo, potrosnja in value:
                 try:
                     cur.execute('INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (?, ?, ?)', (brojilo, potrosnja, mesec))
-                except sqlite3.IntegrityError:
+                except:
+                    print("Greska")
                     return 'Doslo je do errora'
             conn.commit()
             return 'Uspesno dodavanje'
