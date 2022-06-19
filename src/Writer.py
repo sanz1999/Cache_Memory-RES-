@@ -1,45 +1,73 @@
 import socket
 import pickle
 import os,sys
+import string
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from models.ConnectionParams import HOST,  W_PORT
 
+def unos(poruka:string,tip:type):
+    try:
+        return tip(input(poruka))
+    except KeyboardInterrupt:
+        raise KeyboardInterrupt
+    except Exception:
+        raise ValueError(f"Unos nije tipa: {tip.__name__}")
 
-def SaljiPodatke(ID:int,potrosnja:float):
+def povezi_se():
     try:
         client = socket.socket(socket.AF_INET,socket.SOCK_STREAM) 
         client.connect((HOST,W_PORT))
-        data = ID,potrosnja
-        print(data)
-        data = pickle.dumps(data)
-        print(type(data))
-        
-        client.send(data)
+    except Exception:
+        raise ConnectionError
+    else:
+        return client
 
-    except: 
-        print("Nije uspjelo slanje")
-   
 
-def UnosPodataka():
+def salji_podatke(id:int,potrosnja:float):
     try:
-        id = int(input("Unesite ID korisnika: "))
-        potrosnja = float(input("Unesite potrosnju za korisnika: "))
-        print(f"Id : {id}  Potrosnja : {potrosnja} ")
-    except:
-        print("Pogresan tip podatka")
-    return id, potrosnja
+        client = povezi_se()
+        data = id,potrosnja
+        data = pickle.dumps(data)
+        client.send(data)
+    except ConnectionError: 
+        print("Nije moguce uspostavljanje konekcije")
+    except Exception as e:
+        print(e)
+    else:
+        print("Podatak uspesno poslat Dumping Buffer-u")
+   
+def unos_podataka():
+    try:
 
- 
+        id_korisnika = unos("Unesite ID korisnika:",int)
+        potrosnja = unos("Unesite potrosnju za korisnika: ",float)
+        print(f"Id : {id_korisnika}  Potrosnja : {potrosnja} ")
+    except KeyboardInterrupt:
+        raise KeyboardInterrupt
+    except ValueError as e:
+        print(e)
+    else:
+        return id_korisnika, potrosnja
+
 def main():
     while True:
-        id, potrosnja = UnosPodataka()
-        SaljiPodatke(id, potrosnja)
-       
+        try:
+            id_korisnika, potrosnja = unos_podataka()
+        except TypeError:
+            print("Ponovite celokupan unos")
+        except KeyboardInterrupt:
+            print("\nWriter se zatvara")
+            return 
+        else:
+            salji_podatke(id_korisnika, potrosnja)       
+
    
 if __name__ == "__main__":
     main()
+
+
 
 
