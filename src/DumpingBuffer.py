@@ -1,91 +1,127 @@
+from ast import arg
 from collections import deque
-import socket,pickle,asyncio,os,sys
-from typing import final 
+from csv import writer
+from dataclasses import replace
+from inspect import ArgSpec
+from logging import exception
+import socket
+import pickle
+import os
+import sys
+import threading
+import select
+import time
+from time import sleep
 
+#Dodavanje putanja u path, kako bi moglo da se pristupa drugim folderima i modulima
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
-
+#Importovanje zajednickih promenljivih koje definisu parametre povezivanja
 from models.ConnectionParams import HOST, DB_PORT, W_PORT
 
+#Velicina podatka koji primamo prilikom komunikacije
 DATA_SIZE = 1024
+
+#Velicina koja odredjuje kolicinu podatak koji se preuzimaju iz reda i salju historical komponenti
 BUFFER_SIZE = 7
 
-red = deque()
+#Interna FIFO memorijska struktura
 
-def ListaZaSlanje():
 
-    listaZaSlanje =[]
+def napravi_listu_za_slanje_podataka(red:deque):
+    lista =[]
+    i=0
+    while i<BUFFER_SIZE:
+        lista.append(red.popleft()) #istovremeno uklanjanje iz reda i ubacivanje u listu za slanje
+        i+=1
+    return lista
 
-    for i in range(BUFFER_SIZE):
-        listaZaSlanje.append(red.popleft())
-
-    return ListaZaSlanje
-
-def PosaljiPodatkeHistorical():
-    historicalSocket = socket.socket((socket.AF_INET,socket.SOCK_STREAM))
-    try:
-        historicalSocket.connect(HOST,DB_PORT)
-    except:
-        print("Povezivanje na Historical neuspesno")
-    else:
-        lista = ListaZaSlanje()
-        data_string = pickle.dumps(lista)
-        historicalSocket.send(data_string)
-        print("Uspesno poslato")
-    
-def pozalji():
-    lista = ListaZaSlanje()
-    print("Skinuto 7 iz reda")
-    
-
-def UslovZaSlanjePodataka():
+def uslov_za_slanje_podataka(red:deque):
     if len(red) >= BUFFER_SIZE:
         return True
     else :
         return False
 
-async def SaljiPodatke():
-    while True:
-        if UslovZaSlanjePodataka():
-            pozalji()
-            #PosaljiPodatkeHistorical()
-        else:
-            print("ziv sam 2 sekunde")
-            await asyncio.sleep(2)
-        
-def PrimiPodatke(data):
-    server = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    server.bind((HOST,W_PORT))
-    server.listen()
+def preuzmi_podatke(writer:socket):
+    data = writer.recv(DATA_SIZE)
+    data = pickle.loads(data)
+    writer.close()
+    return data
 
+def upisi_u_red(data:tuple,red:deque):
+    red.append(data)
+    print(f"Upisano u red. Trenutni broj {len(red)}")
 
-async def main():
-    asyncio.create_task(SaljiPodatke())
+def uspostavi_dolaznu_konekciju():
+    dumpingbuffer_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    dumpingbuffer_socket.bind((HOST,W_PORT))
+    dumpingbuffer_socket.listen()
+    writer,address = dumpingbuffer_socket.accept()
+    print(f"Povezan Writer adresa:{address}")
+    return writer
 
+def uspostavi_odlaznu_konekciju():
+    historical_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    historical_socket.connect((HOST,DB_PORT))
+    return historical_socket
+
+def posalji_podatke(red:deque):  
     try:
-        dumpingbufferSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        dumpingbufferSocket.bind((HOST,W_PORT))
-        dumpingbufferSocket.listen()
-        print("Kreirana")
-        while True:
-            writer,address = dumpingbufferSocket.accept()
-            print(f"Povezan Writer adresa:{address}")
-            data = writer.recv(DATA_SIZE)
-            data = pickle.loads(data)
-            red.append(data)
-            print(type(data))
-            print(data)
-            print(f"Br elem u que:{len(red)}")
-            
-            
-    except KeyboardInterrupt:                           #omogucava Ctrl+C prekid programa
-        print("Caught keyboard interrupt, exiting")
-    finally:
-        dumpingbufferSocket.close()
-        pass
+        historical = uspostavi_odlaznu_konekciju()
+    except ConnectionError:
+        print("Nije moguca konekcija na Historical")
+    else:       
+        lista = napravi_listu_za_slanje_podataka(red)
+        data_string = pickle.dumps(lista)
+        historical.send(data_string)
+        print("Uspesno poslato")
 
+    
+def proces_primanja_podataka(red:deque):
+    while True:
+        try:
+            writer = uspostavi_dolaznu_konekciju()
+        except Exception as e:
+            print(e)
+        else:
+            data = preuzmi_podatke(writer)
+            upisi_u_red(data,red)
+            
+        
 
+def proces_slanja_podataka(red:deque):
+    while True:
+        if uslov_za_slanje_podataka(red):
+            posalji_podatke(red)
+            sleep(2)
+        else:
+            sleep(2)
+            
+
+def pokreni_tredove(lista:list):
+    for tred in lista:
+        try:
+            tred.start()
+        except Exception as e:
+            print(f"Proces: {tred.name} nije pokrenut")
+            print(e)
+        else:
+            print(f"Proces: {tred.name} pokrenut")
+
+def kreiraj_tredove(red:deque):
+    tredovi = []
+    tredovi.append(threading.Thread(name="Listener",target=proces_primanja_podataka,args=(red,),daemon=True))
+    tredovi.append(threading.Thread(name="Sender",target=proces_slanja_podataka,args=(red,),daemon=True))
+    return tredovi
+
+def main():
+    red = deque()
+    tredovi = kreiraj_tredove(red)
+    pokreni_tredove(tredovi)
+    print("DumpingBuffer pokrenut") 
+    a= input()
+    print(a)
+    print("DumpingBuffer se zatvara")
 
 if __name__ == "__main__":
-    asyncio.run(main())
-
+    main()
