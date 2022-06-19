@@ -1,4 +1,3 @@
-
 import socket
 import pickle
 import os,sys
@@ -26,6 +25,7 @@ def povezi_se():
     else:
         return client
 
+
 def salji_podatke(id:int,potrosnja:float):
     try:
         client = povezi_se()
@@ -41,6 +41,7 @@ def salji_podatke(id:int,potrosnja:float):
    
 def unos_podataka():
     try:
+
         id_korisnika = unos("Unesite ID korisnika:",int)
         potrosnja = unos("Unesite potrosnju za korisnika: ",float)
         print(f"Id : {id_korisnika}  Potrosnja : {potrosnja} ")
@@ -62,6 +63,7 @@ def main():
             return 
         else:
             salji_podatke(id_korisnika, potrosnja)       
+
    
 if __name__ == "__main__":
     main()

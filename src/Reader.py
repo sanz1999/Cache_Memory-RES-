@@ -1,11 +1,16 @@
-from pickle import OBJ
-from pydoc import cli
-import sys
-sys.path.append('../')
-from http import client
+import pickle
+import sys,os
 from random import choices
-from models import ETipZahteva, IzvestajPoGradu, IzvestajPoKorisniku, IzvestajPoMesecu
 import socket
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from models.ConnectionParams import HOST, R_PORT
+from models.IzvestajPoGradu import *
+from models.IzvestajPoKorisniku import *
+from models.IzvestajPoMesecu import *
+from models.ETipZahteva import ETipZahteva
 
 
 #konekcija sa soketom i slanje zahtjeva
@@ -55,11 +60,15 @@ def ispis(objekat):
         for item in objekat[1]:            
             print("\t\t", end='')
             print(f"{item.brojilo}, {item.ime}, {item.prezime}, {item.adresa}, {item.grad}, {item.potrosnja}")
+    
+    
     elif type(objekat) ==  tuple(int, IzvestajPoKorisniku): 
         print(objekat[0])
         for potrosnja in objekat[1].lista:   
            print(potrosnja[0] + potrosnja[1])
         print(objekat[1].ime, objekat[1].prezime, objekat[1].adresa, objekat[1].grad)         
+    
+    
     elif type(objekat) == tuple(str, dict(str, list(IzvestajPoGradu))): 
         #ime grada
         print(objekat[0])

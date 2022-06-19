@@ -16,7 +16,7 @@ from models.IzvestajPoGradu import IzvestajGrad, IzvestajGradItem
 sel = selectors.DefaultSelector()
 
 #Konekcija sa SQLite DataBase
-conn = sqlite3.connect('../data/dataBase.db')
+conn = sqlite3.connect('../data/dataBase.json')
 cur = conn.cursor()
 
 #Mapa meseca
@@ -108,6 +108,48 @@ def service_connection(key, mask):
 def get_month():
     return meseci[date.today().month]
     
+#Zahtev - Korisnik
+def zahtev_korisnik(value:str)->dict:
+    cur.execute('''
+    select k.brojilo, adresa, grad, potrosnja, mesec
+    from Korisnici k, Potrosnja p
+    where k.brojilo = p.brojilo and k.korisnik = ?
+    ''', (value, ))
+    query = cur.fetchall()
+    items = dict()
+    for item in query:
+        items[item[0]] = items.get(item[0], IzvestajKorisnikItem(item[1], item[2], list()))
+        items[item[0]].potrosnje.append((item[4], item[3]))
+    return items
+
+#Zahtev - Mesec
+def zahtev_mesec(value:str)->list:
+    cur.execute('''
+    SELECT k.brojilo, korisnik, adresa, grad, potrosnja
+    FROM Korisnici k, Potrosnja p
+    WHERE k.brojilo = p.brojilo and mesec = ?
+    ''', (value, ))
+    query = cur.fetchall()
+    items = list()
+    for item in query:
+        items.append(IzvestajMesecItem(item[0], item[1], item[2], item[3], item[4]))
+    return items
+
+#Zahtev - Grad
+def zahtev_grad(value:str)->dict:
+    cur.execute('''
+    SELECT k.brojilo, korisnik, adresa, potrosnja, p.mesec
+    FROM Korisnici k, Potrosnja p, meseci m
+    WHERE k.brojilo = p.brojilo and grad = ? and p.mesec = m.mesec
+    ORDER BY m.id
+    ''', (value, ))
+    query = cur.fetchall()
+    items = dict()
+    for item in query:
+        grad_item = IzvestajGradItem(item[0], item[1], item[2], item[3])
+        items[item[4]] = items.get(item[4], list())
+        items[item[4]].append(grad_item)
+    return items
 
 #Obrada zahteva
 def process_request(request, value):
@@ -115,43 +157,15 @@ def process_request(request, value):
 
     match request:
         case ETipZahteva.KORISNIK:
-            cur.execute('''
-            select k.brojilo, adresa, grad, potrosnja, mesec
-            from Korisnici k, Potrosnja p
-            where k.brojilo = p.brojilo and k.korisnik = ?
-            ''', (value, ))
-            query = cur.fetchall()
-            items = dict()
-            for item in query:
-                items[item[0]] = items.get(item[0], IzvestajKorisnikItem(item[1], item[2], list()))
-                items[item[0]].potrosnje.append((item[4], item[3]))
+            items = zahtev_korisnik(value)
             return IzvestajKorisnik(value, items)
 
         case ETipZahteva.MESEC:
-            cur.execute('''
-            SELECT k.brojilo, korisnik, adresa, grad, potrosnja
-            FROM Korisnici k, Potrosnja p
-            WHERE k.brojilo = p.brojilo and mesec = ?
-            ''', (value, ))
-            query = cur.fetchall()
-            items = list()
-            for item in query:
-                items.append(IzvestajMesecItem(item[0], item[1], item[2], item[3], item[4]))
+            items = zahtev_mesec(value)
             return IzvestajMesec(value, items)
 
         case ETipZahteva.GRAD:
-            cur.execute('''
-            SELECT k.brojilo, korisnik, adresa, potrosnja, p.mesec
-            FROM Korisnici k, Potrosnja p, meseci m
-            WHERE k.brojilo = p.brojilo and grad = ? and p.mesec = m.mesec
-            ORDER BY m.id
-            ''', (value, ))
-            query = cur.fetchall()
-            items = dict()
-            for item in query:
-                grad_item = IzvestajGradItem(item[0], item[1], item[2], item[3])
-                items[item[4]] = items.get(item[4], list())
-                items[item[4]].append(grad_item)
+            items = zahtev_grad(value)
             return IzvestajGrad(value, items)
 
         case ETipZahteva.ADD_USER:
@@ -168,7 +182,7 @@ def process_request(request, value):
             for brojilo, potrosnja in value:
                 try:
                     cur.execute('INSERT INTO "Potrosnja"("brojilo", "potrosnja", "mesec") VALUES (?, ?, ?)', (brojilo, potrosnja, mesec))
-                except:
+                except sqlite3.IntegrityError:
                     return 'Doslo je do errora'
             conn.commit()
             return 'Uspesno dodavanje'
