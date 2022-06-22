@@ -15,10 +15,11 @@ class TestProcessRequest(unittest.TestCase):
         Historical.zahtev_grad = Mock()
         Historical.zahtev_mesec = Mock()
         Historical.process_request(ETipZahteva.KORISNIK, "Ivan")
-        Historical.process_request(ETipZahteva.GRAD, "Ivan")
-        Historical.zahtev_korisnik.assert_called_once()
-        Historical.zahtev_grad.assert_called_once()
-        Historical.zahtev_mesec.assert_not_called()
+        Historical.process_request(ETipZahteva.GRAD, "Novi Sad")
+        Historical.process_request(ETipZahteva.MESEC, "JUN")
+        Historical.zahtev_korisnik.assert_called_once_with("Ivan")
+        Historical.zahtev_grad.assert_called_once_with("Novi Sad")
+        Historical.zahtev_mesec.assert_called_once_with("JUN")
 
    
         

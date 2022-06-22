@@ -16,7 +16,7 @@ from models.IzvestajPoGradu import IzvestajGrad, IzvestajGradItem
 sel = selectors.DefaultSelector()
 
 #Konekcija sa SQLite DataBase
-conn = sqlite3.connect('../data/dataBase.db')
+conn = sqlite3.connect('data/dataBase.db')
 cur = conn.cursor()
 
 #Mapa meseca
