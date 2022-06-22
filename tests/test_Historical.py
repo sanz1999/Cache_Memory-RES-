@@ -20,6 +20,9 @@ class TestProcessRequest(unittest.TestCase):
         Historical.zahtev_grad.assert_called_once()
         Historical.zahtev_mesec.assert_not_called()
 
+   
+        
+
 
 if __name__ == '__main__':
     unittest.main()

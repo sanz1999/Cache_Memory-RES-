@@ -247,7 +247,7 @@ def process_request(request, value):
 
     return ret_val
 
-def main():    
+def main(): # pragma: no cover
     #Kreacija soketa
     data_buffer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     reader_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

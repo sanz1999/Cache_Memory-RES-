@@ -11,12 +11,10 @@ from models.ConnectionParams import HOST,  W_PORT
 def unos(poruka:string,tip:type):
     try:
         return tip(input(poruka))
-    except KeyboardInterrupt:
-        raise KeyboardInterrupt
     except Exception:
         raise ValueError(f"Unos nije tipa: {tip.__name__}")
 
-def povezi_se():
+def povezi_se(): # pragma: no cover
     try:
         client = socket.socket(socket.AF_INET,socket.SOCK_STREAM) 
         client.connect((HOST,W_PORT))
@@ -26,7 +24,7 @@ def povezi_se():
         return client
 
 
-def salji_podatke(id:int,potrosnja:float):
+def salji_podatke(id:int,potrosnja:float): # pragma: no cover
     try:
         client = povezi_se()
         data = id,potrosnja
@@ -45,14 +43,12 @@ def unos_podataka():
         id_korisnika = unos("Unesite ID korisnika:",int)
         potrosnja = unos("Unesite potrosnju za korisnika: ",float)
         print(f"Id : {id_korisnika}  Potrosnja : {potrosnja} ")
-    except KeyboardInterrupt:
-        raise KeyboardInterrupt
     except ValueError as e:
-        print(e)
+        print(str(e))
     else:
         return id_korisnika, potrosnja
 
-def main():
+def main(): # pragma: no cover
     while True:
         try:
             id_korisnika, potrosnja = unos_podataka()
@@ -65,7 +61,7 @@ def main():
             salji_podatke(id_korisnika, potrosnja)       
 
    
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma no cover
     main()
 
 

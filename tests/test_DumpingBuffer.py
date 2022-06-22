@@ -3,7 +3,8 @@ from ctypes import WinError
 from modulefinder import IMPORT_NAME
 import unittest
 from unittest import result
-from unittest.mock import patch,Mock
+from unittest.mock import patch,Mock, ANY
+import threading
 import os,sys
 
 
@@ -14,6 +15,7 @@ from src import DumpingBuffer
 
 class TestDumpingBuffer(unittest.TestCase):
 
+    @staticmethod
     def napuni_red(broj:int):
         red = deque()
         i=0
@@ -37,7 +39,15 @@ class TestDumpingBuffer(unittest.TestCase):
         red =TestDumpingBuffer.napuni_red(2)
         self.assertEqual(False,DumpingBuffer.uslov_za_slanje_podataka(red))
 
+    @patch('builtins.print')
+    def test_upisi_u_red(self, mock_print):
+        red = self.napuni_red(5)
+        DumpingBuffer.upisi_u_red((1,2,3), red)
+        mock_print.assert_called_with(f"Upisano u red. Trenutni broj {len(red)}")
      
+    def test_kreiraj_tredove(self):
+        red = self.napuni_red(5)
+        self.assertEqual(len(DumpingBuffer.kreiraj_tredove(red)),2)
 
 if __name__ == '__main__':
     unittest.main()

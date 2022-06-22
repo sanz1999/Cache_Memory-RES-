@@ -2,7 +2,7 @@ from modulefinder import IMPORT_NAME
 import unittest
 from unittest import result
 from unittest import mock
-from unittest.mock import patch,Mock,MagicMock
+from unittest.mock import patch,Mock,MagicMock,call
 import os,sys
 
 
@@ -15,9 +15,18 @@ from src import Writer
 class TestWriter(unittest.TestCase):
 
     @patch('src.Writer.unos')
-    def test_unos_podataka(self,mock_unos):
+    def test_unos_podataka_ok(self,mock_unos):
         mock_unos.side_effect = [2,3]
         self.assertEqual(Writer.unos_podataka(),(2,3))
+
+    @patch('builtins.print')
+    @patch('src.Writer.input')
+    def test_unos_podataka_not_ok(self, mock_unos, mock_print):
+        mock_unos.side_effect = ["dva", 3]
+        Writer.unos_podataka()
+        #print("was here")
+        #print(mock_print.mock_calls)
+        mock_print.assert_called_with(f"Unos nije tipa: {int.__name__}")
 
     @patch('src.Writer.input')
     def test_unos(self,mock_unos):

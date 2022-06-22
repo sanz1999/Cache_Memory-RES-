@@ -43,7 +43,7 @@ def uslov_za_slanje_podataka(red:deque):
     else :
         return False
 
-def preuzmi_podatke(writer:socket):
+def preuzmi_podatke(writer:socket): # pragma: no cover
     data = writer.recv(DATA_SIZE)
     data = pickle.loads(data)
     writer.close()
@@ -53,7 +53,7 @@ def upisi_u_red(data:tuple,red:deque):
     red.append(data)
     print(f"Upisano u red. Trenutni broj {len(red)}")
 
-def uspostavi_dolaznu_konekciju():
+def uspostavi_dolaznu_konekciju(): # pragma: no cover
     dumpingbuffer_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     dumpingbuffer_socket.bind((HOST,W_PORT))
     dumpingbuffer_socket.listen()
@@ -61,12 +61,12 @@ def uspostavi_dolaznu_konekciju():
     print(f"Povezan Writer adresa:{address}")
     return writer
 
-def uspostavi_odlaznu_konekciju():
+def uspostavi_odlaznu_konekciju(): # pragma: no cover
     historical_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     historical_socket.connect((HOST,DB_PORT))
     return historical_socket
 
-def posalji_podatke(red:deque):  
+def posalji_podatke(red:deque): # pragma: no cover
     try:
         historical = uspostavi_odlaznu_konekciju()
     except ConnectionError:
@@ -78,7 +78,7 @@ def posalji_podatke(red:deque):
         print("Uspesno poslato")
 
     
-def proces_primanja_podataka(red:deque):
+def proces_primanja_podataka(red:deque): # pragma: no cover
     while True:
         try:
             writer = uspostavi_dolaznu_konekciju()
@@ -90,7 +90,7 @@ def proces_primanja_podataka(red:deque):
             
         
 
-def proces_slanja_podataka(red:deque):
+def proces_slanja_podataka(red:deque): # pragma: no cover
     while True:
         if uslov_za_slanje_podataka(red):
             posalji_podatke(red)
@@ -99,7 +99,7 @@ def proces_slanja_podataka(red:deque):
             sleep(2)
             
 
-def pokreni_tredove(lista:list):
+def pokreni_tredove(lista:list): # pragma: no cover
     for tred in lista:
         try:
             tred.start()
@@ -115,7 +115,7 @@ def kreiraj_tredove(red:deque):
     tredovi.append(threading.Thread(name="Sender",target=proces_slanja_podataka,args=(red,),daemon=True))
     return tredovi
 
-def main():
+def main(): # pragma: no cover
     red = deque()
     tredovi = kreiraj_tredove(red)
     pokreni_tredove(tredovi)
@@ -124,5 +124,5 @@ def main():
     print(a)
     print("DumpingBuffer se zatvara")
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()
