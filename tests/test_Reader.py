@@ -10,13 +10,17 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from src import Reader
 
-class TestDumpingBuffer(unittest.TestCase):
+class TestReader(unittest.TestCase):
 
-    def test_unos(self):
-        with mock.patch('builtins.input', side_effect=[2]):
+    def test_main_calls(self):
+        with mock.patch('builtins.input', side_effect=["2", "JUN", "0", "1", "Ivan", "0", "3", "Novi Sad", "0", "0"]):
+            Reader.IzvestajGradHandler = Mock()
             Reader.IzvestajMesecHandler = Mock()
+            Reader.IzvestajKorisnikHandler = Mock()
             Reader.main()
-            Reader.IzvestajMesecHandler.assert_called_once()
+            Reader.IzvestajMesecHandler.assert_called_once_with("JUN")
+            Reader.IzvestajGradHandler.assert_called_once_with("Novi Sad")
+            Reader.IzvestajKorisnikHandler.assert_called_once_with("Ivan")
 
 
 if __name__ == '__main__':
