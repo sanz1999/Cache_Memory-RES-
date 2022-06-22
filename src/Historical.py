@@ -176,7 +176,7 @@ def process_request(request, value):
             conn.commit()
             ret_val = 'Uspesno dodato'
 
-        case ETipZahteva.ADD_CON:
+        case ETipZahteva.ADD_CON: # pragma: no cover
             #Ocekuje se da je value lista tuple-ova
             mesec = get_month()
             print(value)
