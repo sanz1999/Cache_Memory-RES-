@@ -13,15 +13,15 @@ from src import Reader
 
 class TestReader(unittest.TestCase):
 
-    def test_main_calls(self):
+    @patch('src.Reader.IzvestajGradHandler')
+    @patch('src.Reader.IzvestajMesecHandler')
+    @patch('src.Reader.IzvestajKorisnikHandler')
+    def test_main_calls(self, mock_korisnik, mock_mesec, mock_grad):
         with mock.patch('builtins.input', side_effect=["2", "JUN", "0", "1", "Ivan", "0", "3", "Novi Sad", "0", "0"]):
-            Reader.IzvestajGradHandler = Mock()
-            Reader.IzvestajMesecHandler = Mock()
-            Reader.IzvestajKorisnikHandler = Mock()
             Reader.main()
-            Reader.IzvestajMesecHandler.assert_called_once_with("JUN")
-            Reader.IzvestajGradHandler.assert_called_once_with("Novi Sad")
-            Reader.IzvestajKorisnikHandler.assert_called_once_with("Ivan")
+            mock_mesec.assert_called_once_with("JUN")
+            mock_grad.assert_called_once_with("Novi Sad")
+            mock_korisnik.assert_called_once_with("Ivan")
 
     def test_grad_exception(self):
         with mock.patch('builtins.input', side_effect=["2", 2, 0, "0"]):
@@ -57,11 +57,12 @@ class TestReader(unittest.TestCase):
         mesec_item = IzvestajPoMesecu.IzvestajMesecItem(1234, "Stefan", "Kozaracka 1", "Novi Sad", 120.42)
         Reader.posalji_zahtev.return_value = IzvestajPoMesecu.IzvestajMesec("JUN", [mesec_item])
         Reader.IzvestajMesecHandler("JUN")
-        assert mock_print.mock_calls == [call(),
-                                         call(f'Potrosnja u mesecu {"JUN"}'),
-                                         call(f'{"BROJILO":10}{"KORISNIK":24}{"ADRESA":24}{"GRAD":12}{"POTROSNJA":10}'),
-                                         call(f'{1234:<10}{"Stefan":24}{"Kozaracka 1":24}{"Novi Sad":12}{120.42:10}'),
-                                         call()]
+        calls = [call(),
+                call(f'Potrosnja u mesecu {"JUN"}'),
+                call(f'{"BROJILO":10}{"KORISNIK":24}{"ADRESA":24}{"GRAD":12}{"POTROSNJA":10}'),
+                call(f'{1234:<10}{"Stefan":24}{"Kozaracka 1":24}{"Novi Sad":12}{120.42:10}'),
+                call()]
+        mock_print.assert_has_calls(calls)
         
 
     @patch('builtins.print')
