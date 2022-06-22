@@ -17,7 +17,7 @@ class TestReader(unittest.TestCase):
     @patch('src.Reader.IzvestajMesecHandler')
     @patch('src.Reader.IzvestajKorisnikHandler')
     def test_main_calls(self, mock_korisnik, mock_mesec, mock_grad):
-        with mock.patch('builtins.input', side_effect=["2", "JUN", "0", "1", "Ivan", "0", "3", "Novi Sad", "0", "0"]):
+        with mock.patch('builtins.input', side_effect=["2", "JUN", 0, "1", "Ivan", 0, "3", "Novi Sad", 0, "15", 0, "0"]):
             Reader.main()
             mock_mesec.assert_called_once_with("JUN")
             mock_grad.assert_called_once_with("Novi Sad")
