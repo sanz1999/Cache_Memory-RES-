@@ -24,8 +24,6 @@ class TestWriter(unittest.TestCase):
     def test_unos_podataka_not_ok(self, mock_unos, mock_print):
         mock_unos.side_effect = ["dva", 3]
         Writer.unos_podataka()
-        #print("was here")
-        #print(mock_print.mock_calls)
         mock_print.assert_called_with(f"Unos nije tipa: {int.__name__}")
 
     @patch('src.Writer.input')
