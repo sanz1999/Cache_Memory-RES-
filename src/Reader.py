@@ -71,7 +71,7 @@ def IzvestajKorisnikHandler(korisnik : str):
             print(f'{item[0]:5}{item[1]:10}')
         print()
 
-def posalji_zahtev(zahtev, vrednost):
+def posalji_zahtev(zahtev, vrednost): # pragma: no cover
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
         client_socket.connect((HOST, R_PORT))
         data = bytes()
