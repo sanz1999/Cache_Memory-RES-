@@ -10,7 +10,7 @@ from models.ETipZahteva import ETipZahteva
 
 class TestProcessRequest(unittest.TestCase):
     
-    def test_process_request(self):
+    def test_process_request_calls(self):
         Historical.zahtev_korisnik = Mock()
         Historical.zahtev_grad = Mock()
         Historical.zahtev_mesec = Mock()

@@ -60,7 +60,7 @@ INSERT INTO "meseci"("id", "mesec") VALUES (12, 'DEC');
 ''')
 
 #Primanje konekcije
-def accept(sock):
+def accept(sock): # pragma: no cover
     conn, addr = sock.accept() 
     print(f"Accepted connection from {addr}")
     conn.setblocking(False)
@@ -69,7 +69,7 @@ def accept(sock):
     sel.register(conn, events, data = data)
 
 #Komunikacija sa korisnikom
-def service_connection(key, mask):
+def service_connection(key, mask): # pragma: no cover
     sock = key.fileobj
     data = key.data
 
@@ -105,7 +105,7 @@ def service_connection(key, mask):
                 sel.unregister(sock)
                 sock.close()
                 
-def get_month():
+def get_month(): # pragma: no cover
     return meseci[date.today().month]
     
 #Zahtev - Korisnik
@@ -168,7 +168,7 @@ def process_request(request, value):
             items = zahtev_grad(value)
             return IzvestajGrad(value, items)
 
-        case ETipZahteva.ADD_USER:
+        case ETipZahteva.ADD_USER: # pragma: no cover
             try:
                 cur.execute('INSERT INTO Korisnici (brojilo, korisnik, adresa, grad) VALUES (?, ?, ?, ?)', (value[0],value[1], value[2], value[3]))
             except sqlite3.IntegrityError:
@@ -189,23 +189,23 @@ def process_request(request, value):
             conn.commit()
             return 'Uspesno dodavanje'
 
-        case ETipZahteva.REMOVE_USER:
+        case ETipZahteva.REMOVE_USER: # pragma: no cover
             cur.execute('DELETE FROM Korisnici where brojilo = ?', (value, ))
             conn.commit()
             ret_val = f'Uspesno izbrisan korisnik sa brojilom({value})'
         
-        case ETipZahteva.REMOVE_CON:
+        case ETipZahteva.REMOVE_CON: # pragma: no cover
             raise NotImplementedError
 
-        case ETipZahteva.GET_ALL_USERS:
+        case ETipZahteva.GET_ALL_USERS: # pragma: no cover
             cur.execute('SELECT * FROM Korisnici')
             ret_val = cur.fetchall()
 
-        case ETipZahteva.GET_ALL_CON:
+        case ETipZahteva.GET_ALL_CON: # pragma: no cover
             cur.execute('SELECT * FROM potrosnja')
             return cur.fetchall()
 
-        case ETipZahteva.EXISTS_USER:
+        case ETipZahteva.EXISTS_USER: # pragma: no cover
             cur.execute('SELECT * FROM Korisnici WHERE brojilo = ?', (value, ))
             findings = cur.fetchall()
             #print(findings)
@@ -214,7 +214,7 @@ def process_request(request, value):
             else:
                 ret_val = False
 
-        case ETipZahteva.DB_INSERTS:
+        case ETipZahteva.DB_INSERTS: # pragma: no cover
             try:
                 cur.executescript('''
                 DELETE FROM Potrosnja;
